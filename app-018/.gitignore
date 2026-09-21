@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.*
+*.log
+coverage/
+.DS_Store
+.vscode/
+.idea/
+design-src/
+*.psd
+*.ai
+exports/
+test-results/
+playwright-report/
+.cache/

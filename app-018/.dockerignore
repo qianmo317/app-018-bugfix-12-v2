@@ -1,0 +1,21 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+.env.*
+*.log
+coverage
+.vscode
+.idea
+Dockerfile
+docker-compose.yml
+# 注意：nginx.conf 需要 COPY 进镜像，不能忽略（md §12 忽略列表与 Dockerfile 冲突，此处以可构建为准）
+README.md
+test-results
+playwright-report
+e2e
+design-src
+*.psd
+*.ai
+exports
