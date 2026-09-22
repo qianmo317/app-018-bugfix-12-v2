@@ -155,6 +155,80 @@ test.describe('设置与打印', () => {
   });
 });
 
+test.describe('房间边界与双轴移动', () => {
+  test('纵向拖动与横向拖动都生效，且灯不会被拖出房间', async ({ page }) => {
+    await openEditorFromTemplate(page, 'tpl-rembrandt');
+    const keyLamp = page.locator('[data-el="lamp"][data-role="key"]');
+    const box = (await keyLamp.boundingBox())!;
+
+    // 纯纵向拖动（x 不动）：修复前 y 完全不更新
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2, box.y + 120, { steps: 5 });
+    await page.mouse.up();
+    const afterY = await lampTransform(page, 0);
+    expect(afterY.y).toBeGreaterThan(1); // y 确实变化了
+
+    // 向房间外狂拖：位置必须被夹在房间内（房间 6×5，留 0.1m 边距 → 坐标 ≤ 4.9 / 5.9）
+    const box2 = (await keyLamp.boundingBox())!;
+    await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box2.x - 2000, box2.y + 2000, { steps: 6 });
+    await page.mouse.up();
+    const clamped = await lampTransform(page, 0);
+    expect(clamped.x).toBeGreaterThanOrEqual(0.1 - 1e-6);
+    expect(clamped.y).toBeGreaterThanOrEqual(0.1 - 1e-6);
+    expect(clamped.x).toBeLessThanOrEqual(5.9 + 1e-6);
+    expect(clamped.y).toBeLessThanOrEqual(4.9 + 1e-6);
+  });
+
+  test('键盘上下微调生效，且顶到墙后不再越界', async ({ page }) => {
+    await openEditorFromTemplate(page, 'tpl-rembrandt');
+    await page.locator('[data-el="lamp"][data-role="key"]').click();
+    const before = await lampTransform(page, 0);
+
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowLeft');
+    const after = await lampTransform(page, 0);
+    expect(after.y).toBeCloseTo(before.y + 0.1, 3);
+    expect(after.x).toBeCloseTo(before.x - 0.05, 3);
+
+    // 连续向上推过墙：y 只能到 0.1，不能为负
+    for (let i = 0; i < 200; i++) await page.keyboard.press('ArrowUp');
+    const top = await lampTransform(page, 0);
+    expect(top.y).toBeGreaterThanOrEqual(0.1 - 1e-6);
+  });
+
+  test('改小房间后，贴墙元素被夹回新房间内（宽高分别生效）', async ({ page }) => {
+    await openEditorFromTemplate(page, 'tpl-rembrandt');
+    // 把主光拖到旧房间右下角贴墙
+    const keyLamp = page.locator('[data-el="lamp"][data-role="key"]');
+    const box = (await keyLamp.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 2000, box.y + 2000, { steps: 6 });
+    await page.mouse.up();
+    const old = await lampTransform(page, 0);
+    expect(old.x).toBeCloseTo(5.9, 6);
+    expect(old.y).toBeCloseTo(4.9, 6);
+
+    // 房间改小到 4×3：元素应被夹到 (3.9, 2.9)
+    await page.getByTestId('room-w').fill('4');
+    await page.getByTestId('room-h').fill('3');
+    const shrunk = await lampTransform(page, 0);
+    expect(shrunk.x).toBeCloseTo(3.9, 6);
+    expect(shrunk.y).toBeCloseTo(2.9, 6);
+
+    // 房间变矮不变宽（8×2.5）：x 不被误夹，y 按新高度夹
+    await page.getByTestId('room-w').fill('8');
+    await page.getByTestId('room-h').fill('2.5');
+    const wide = await lampTransform(page, 0);
+    expect(wide.x).toBeCloseTo(3.9, 6);
+    expect(wide.y).toBeCloseTo(2.4, 6);
+  });
+});
+
 test.describe('性能（验收：拖 20 盏灯 ≥ 50fps）', () => {
   test('20 盏灯场景拖动帧率中位数 ≥ 50fps', async ({ page }) => {
     // 构造 20 盏灯的方案 JSON 并导入

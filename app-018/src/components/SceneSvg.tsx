@@ -126,6 +126,8 @@ function LampNode({
         style={{ cursor: interactive ? 'grab' : 'default' }}
         onPointerDown={interactive ? (e) => onElementPointerDown?.(sel, e) : undefined}
       >
+        {/* 透明热区：让包围盒中心附近也能点中（文本标签会撑大包围盒） */}
+        {interactive && <circle r={0.3} fill="transparent" pointerEvents="all" />}
         {/* 变光配件示意 */}
         {lamp.modifier.type !== 'bare' && (
           <rect
@@ -211,6 +213,8 @@ export function SceneSvg(props: SceneSvgProps) {
             style={{ cursor: interactive ? 'grab' : 'default' }}
             onPointerDown={interactive ? (e) => down?.(selP, e) : undefined}
           >
+            {/* 透明热区：反光板/背景纸本体 fill=none，补一层可点击区域 */}
+            {interactive && <rect x={-p.w / 2} y={-p.h / 2} width={p.w} height={p.h} fill="transparent" pointerEvents="all" />}
             <rect
               x={-p.w / 2}
               y={-p.h / 2}
@@ -245,6 +249,7 @@ export function SceneSvg(props: SceneSvgProps) {
         style={{ cursor: interactive ? 'grab' : 'default' }}
         onPointerDown={interactive ? (e) => down?.({ type: 'subject' }, e) : undefined}
       >
+        {interactive && <circle r={0.34} fill="transparent" pointerEvents="all" />}
         <g transform={`rotate(${scene.subject.facing})`}>
           {scene.subject.kind === 'human' ? (
             <>
@@ -278,6 +283,7 @@ export function SceneSvg(props: SceneSvgProps) {
         style={{ cursor: interactive ? 'grab' : 'default' }}
         onPointerDown={interactive ? (e) => down?.({ type: 'camera' }, e) : undefined}
       >
+        {interactive && <circle r={0.3} fill="transparent" pointerEvents="all" />}
         <rect x={-0.17} y={-0.11} width={0.34} height={0.22} rx={0.04} fill="#e8eaef" stroke="#12151b" strokeWidth={0.015} />
         <rect x={0.17} y={-0.06} width={0.14} height={0.12} rx={0.02} fill="#b9bfca" stroke="#12151b" strokeWidth={0.015} />
         {isSel('camera') && <rect x={-0.24} y={-0.18} width={0.62} height={0.36} fill="none" stroke="#fff" strokeWidth={0.02} strokeDasharray="0.09 0.07" />}

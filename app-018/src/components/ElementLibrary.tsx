@@ -55,6 +55,7 @@ export function ElementLibrary({ editor }: { editor: PlanEditor }) {
             max={30}
             step={0.5}
             value={scene.room.w}
+            data-testid="room-w"
             onChange={(e) => patchScene({ room: { ...scene.room, w: Number(e.target.value) || scene.room.w } })}
           />
         </label>
@@ -66,6 +67,7 @@ export function ElementLibrary({ editor }: { editor: PlanEditor }) {
             max={30}
             step={0.5}
             value={scene.room.h}
+            data-testid="room-h"
             onChange={(e) => patchScene({ room: { ...scene.room, h: Number(e.target.value) || scene.room.h } })}
           />
         </label>

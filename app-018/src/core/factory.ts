@@ -58,10 +58,10 @@ export function newScene(title = '未命名布光方案'): Scene {
   };
 }
 
-/** 把元素位置夹到房间内（避免拖出房间/调整房间尺寸后越界） */
+/** 把元素位置夹到房间内（避免拖出房间/调整房间尺寸后越界）；两个方向各按各的边长 */
 export function clampToRoom(scene: Scene, x: number, y: number): { x: number; y: number } {
   const maxX = scene.room.w - 0.1;
-  const maxY = scene.room.w - 0.1;
+  const maxY = scene.room.h - 0.1;
   const minX = 0.1;
   const minY = 0.1;
   const cx = Math.min(Math.max(x, minX), maxX);

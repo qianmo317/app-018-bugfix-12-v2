@@ -66,11 +66,11 @@ export function usePlanEditor(planId: string) {
     mutate((s) => {
       const next = { ...s, ...patch };
       if (patch.room) {
-        // 调整房间尺寸后把所有元素夹回室内
-        next.lamps = next.lamps.map((l) => ({ ...l, ...clampToRoom(s, l.x, l.y) }));
-        next.props = next.props.map((p) => ({ ...p, ...clampToRoom(s, p.x, p.y) }));
-        next.subject = { ...next.subject, ...clampToRoom(s, next.subject.x, next.subject.y) };
-        next.camera = { ...next.camera, ...clampToRoom(s, next.camera.x, next.camera.y) };
+        // 调整房间尺寸后按新尺寸把所有元素夹回室内
+        next.lamps = next.lamps.map((l) => ({ ...l, ...clampToRoom(next, l.x, l.y) }));
+        next.props = next.props.map((p) => ({ ...p, ...clampToRoom(next, p.x, p.y) }));
+        next.subject = { ...next.subject, ...clampToRoom(next, next.subject.x, next.subject.y) };
+        next.camera = { ...next.camera, ...clampToRoom(next, next.camera.x, next.camera.y) };
       }
       return next;
     });
@@ -78,15 +78,15 @@ export function usePlanEditor(planId: string) {
 
   const moveElement = useCallback((sel: Selection, x: number, y: number) => {
     mutate((s) => {
-      const p = { x, y };
+      const p = clampToRoom(s, x, y);
       if (sel.type === 'lamp') {
-        return { ...s, lamps: s.lamps.map((l) => (l.id === sel.id ? { ...l, x: p.x } : l)) };
+        return { ...s, lamps: s.lamps.map((l) => (l.id === sel.id ? { ...l, x: p.x, y: p.y } : l)) };
       }
       if (sel.type === 'prop') {
-        return { ...s, props: s.props.map((pr) => (pr.id === sel.id ? { ...pr, x: p.x } : pr)) };
+        return { ...s, props: s.props.map((pr) => (pr.id === sel.id ? { ...pr, x: p.x, y: p.y } : pr)) };
       }
-      if (sel.type === 'subject') return { ...s, subject: { ...s.subject, x: p.x } };
-      return { ...s, camera: { ...s.camera, x: p.x } };
+      if (sel.type === 'subject') return { ...s, subject: { ...s.subject, x: p.x, y: p.y } };
+      return { ...s, camera: { ...s.camera, x: p.x, y: p.y } };
     });
   }, [mutate]);
 
@@ -98,11 +98,11 @@ export function usePlanEditor(planId: string) {
         : sel.type === 'subject' ? s.subject
         : s.camera;
       if (!cur) return s;
-      const p = { x: cur.x + dx, y: cur.y + dy };
-      if (sel.type === 'lamp') return { ...s, lamps: s.lamps.map((l) => (l.id === sel.id ? { ...l, x: p.x } : l)) };
-      if (sel.type === 'prop') return { ...s, props: s.props.map((pr) => (pr.id === sel.id ? { ...pr, x: p.x } : pr)) };
-      if (sel.type === 'subject') return { ...s, subject: { ...s.subject, x: p.x } };
-      return { ...s, camera: { ...s.camera, x: p.x } };
+      const p = clampToRoom(s, cur.x + dx, cur.y + dy);
+      if (sel.type === 'lamp') return { ...s, lamps: s.lamps.map((l) => (l.id === sel.id ? { ...l, x: p.x, y: p.y } : l)) };
+      if (sel.type === 'prop') return { ...s, props: s.props.map((pr) => (pr.id === sel.id ? { ...pr, x: p.x, y: p.y } : pr)) };
+      if (sel.type === 'subject') return { ...s, subject: { ...s.subject, x: p.x, y: p.y } };
+      return { ...s, camera: { ...s.camera, x: p.x, y: p.y } };
     });
   }, [mutate]);
 
