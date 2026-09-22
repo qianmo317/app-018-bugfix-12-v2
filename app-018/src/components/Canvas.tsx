@@ -26,15 +26,36 @@ export function Canvas({ editor }: { editor: PlanEditor }) {
 
   const ratio = useMemo(() => (scene ? computeRatio(scene) : null), [scene]);
 
-  /** 客户端坐标 → 画布米坐标 */
+  // SVG 的实际像素尺寸必须与 viewBox（房间宽高比）一致：按容器内可用空间做 contain 适配。
+  // 依赖浏览器默认拉伸会导致屏幕坐标与米坐标错位、点击命中与拖动位置偏移。
+  const holderRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const holder = holderRef.current;
+    const svg = svgRef.current;
+    if (!holder || !svg || !scene) return;
+    const apply = () => {
+      const availW = holder.clientWidth - 28; // 容器 padding 14×2
+      const availH = holder.clientHeight - 28;
+      if (availW <= 0 || availH <= 0) return;
+      const scale = Math.min(availW / scene.room.w, availH / scene.room.h);
+      svg.style.width = `${scene.room.w * scale}px`;
+      svg.style.height = `${scene.room.h * scale}px`;
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(holder);
+    return () => ro.disconnect();
+  }, [scene?.room.w, scene?.room.h]);
+
+  /** 客户端坐标 → 画布米坐标（SVG 尺寸与 viewBox 同比例，x/y 缩放一致） */
   function clientToM(e: { clientX: number; clientY: number }): { x: number; y: number } {
     const svg = svgRef.current!;
     const rect = svg.getBoundingClientRect();
     const vb = svg.viewBox.baseVal;
-    const scale = Math.min(rect.width / vb.width, rect.height / vb.height);
-    const offX = (rect.width - vb.width * scale) / 2;
-    const offY = (rect.height - vb.height * scale) / 2;
-    return { x: (e.clientX - rect.left - offX) / scale, y: (e.clientY - rect.top - offY) / scale };
+    return {
+      x: ((e.clientX - rect.left) / rect.width) * vb.width,
+      y: ((e.clientY - rect.top) / rect.height) * vb.height,
+    };
   }
 
   function onElementDown(sel: Selection, e: React.PointerEvent<SVGElement>) {
@@ -182,7 +203,7 @@ export function Canvas({ editor }: { editor: PlanEditor }) {
         </div>
         <div className="toolbar-hint">拖动摆灯 · 方向键微调 5cm（Shift ×4）· [ ] 旋转 5° · Delete 删除</div>
       </div>
-      <div className="canvas-holder">
+      <div className="canvas-holder" ref={holderRef}>
         <SceneSvg
           scene={scene}
           selected={selected}

@@ -58,14 +58,12 @@ export function newScene(title = '未命名布光方案'): Scene {
   };
 }
 
-/** 把元素位置夹到房间内（避免拖出房间/调整房间尺寸后越界） */
-export function clampToRoom(scene: Scene, x: number, y: number): { x: number; y: number } {
-  const maxX = scene.room.w - 0.1;
-  const maxY = scene.room.w - 0.1;
+/** 把元素位置夹到房间内（两个方向各按房间的宽/高卡边界，避免拖出房间/调整房间尺寸后越界） */
+export function clampToRoom(room: { w: number; h: number }, x: number, y: number): { x: number; y: number } {
   const minX = 0.1;
   const minY = 0.1;
-  const cx = Math.min(Math.max(x, minX), maxX);
-  const cy = Math.min(Math.max(y, minY), maxY);
+  const cx = Math.min(Math.max(x, minX), Math.max(minX, room.w - 0.1));
+  const cy = Math.min(Math.max(y, minY), Math.max(minY, room.h - 0.1));
   return { x: cx, y: cy };
 }
 

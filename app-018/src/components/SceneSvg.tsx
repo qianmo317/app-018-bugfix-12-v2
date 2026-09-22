@@ -126,6 +126,8 @@ function LampNode({
         style={{ cursor: interactive ? 'grab' : 'default' }}
         onPointerDown={interactive ? (e) => onElementPointerDown?.(sel, e) : undefined}
       >
+        {/* 透明命中区：让整盏灯（含配件/灯头箭头区域）都可抓取 */}
+        <circle r={0.3} fill="transparent" />
         {/* 变光配件示意 */}
         {lamp.modifier.type !== 'bare' && (
           <rect

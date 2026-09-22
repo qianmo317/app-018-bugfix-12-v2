@@ -125,8 +125,10 @@ h3 { font-size: 13px; margin: 0 0 10px; color: var(--text-dim); text-transform: 
 .toolbar-group button:first-child { border-radius: 6px 0 0 6px; }
 .toolbar-group button:last-child { border-radius: 0 6px 6px 0; }
 .toolbar-hint { color: var(--text-dim); font-size: 12px; }
-.canvas-holder { flex: 1; min-height: 0; padding: 14px; display: flex; }
-.canvas-holder svg { flex: 1; height: auto; min-width: 0; border-radius: 8px; }
+.canvas-holder { flex: 1; min-height: 0; padding: 14px; display: flex; align-items: center; justify-content: center; }
+/* SVG 实际像素尺寸必须与 viewBox（房间宽高比）一致，否则屏幕坐标与米坐标错位、点击命中偏移；
+   具体尺寸由 Canvas 根据容器大小和房间比例通过 inline style 写入 */
+.canvas-holder svg { flex: 0 0 auto; border-radius: 8px; }
 .unit-badge { position: absolute; left: 24px; bottom: 24px; background: #00000088; padding: 3px 10px; border-radius: 6px; font-size: 12px; color: var(--text-dim); pointer-events: none; }
 .drag-hint {
   position: fixed; z-index: 50; pointer-events: none;

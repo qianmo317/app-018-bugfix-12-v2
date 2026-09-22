@@ -61,7 +61,8 @@ export function computeRatio(scene: Scene): RatioResult {
   let fStop: number | null = null;
   let fStopNearest: number | null = null;
   if (key && key.lamp.gnAtFull) {
-    fStop = apertureFromGN(key.lamp.gnAtFull, key.distanceM, scene.iso, key.lamp.powerStep);
+    // 灯与模特位置重合时距离为 0：钳到 0.1m 防除零（与 relIlluminance 的防除零口径一致）
+    fStop = apertureFromGN(key.lamp.gnAtFull, Math.max(key.distanceM, 0.1), scene.iso, key.lamp.powerStep);
     fStopNearest = nearestFStop(fStop);
   }
 
